@@ -27,12 +27,12 @@ class DisjointSet:
         return self.vertex == other.vertex
     
     def find(self):
-        curr = self
+        root = curr = self
 
-        while curr.getParent() is not None:
-            curr = curr.getParent()
+        while root.getParent() is not None:
+            root = root.getParent()
 
-        return curr
+        return root
     
     def getVertex(self):
         return self.vertex
@@ -193,6 +193,7 @@ class Maze:
     def __init__(self, w, h):
         self.width = w
         self.height = h
+        self.minCycleSize = 6
 
         # Adjacency list representing adjacent spaces with no wall in between.
         # 0 <= len(graph[(x, y)]) <= 4 for all (x, y).
@@ -287,7 +288,10 @@ class Maze:
         # from <x> has already reached a depth of <degree>, the shortest
         # path between <x> and <y> is longer than <degree>.
         return False
-    def setup(self):
+    def setup(self, minCycleSize):
+        self.minCycleSize = minCycleSize
+        maxCycles = int((self.width * self.height) // minCycleSize * 0.5)
+        cycleCnt = 0
         edgesLst = deque([])
         dsu = DisjointSetUnion()
         for x in range(self.width - 1):
@@ -310,11 +314,16 @@ class Maze:
             vertex2 = edge[1]
             isDisjoint = dsu.union(vertex1.disjointSet, vertex2.disjointSet)
             if isDisjoint:
+                # Add the edge if there is no cycle
                 vertex1.square.addNeighbor(vertex2.square)
             else:
-                isSmallCycle = self._lessThanDegree(vertex1.square, vertex2.square, 6)
-                if not isSmallCycle:
-                    vertex1.square.addNeighbor(vertex2.square)
+                # Add the edge if cycle is larger than the minimum cycle size and
+                # maximum number of cycles is not reached
+                if cycleCnt < maxCycles:
+                    isSmallCycle = self._lessThanDegree(vertex1.square, vertex2.square, minCycleSize - 1)
+                    if not isSmallCycle:
+                        vertex1.square.addNeighbor(vertex2.square)
+                        cycleCnt += 1
     def __str__(self):
         string = ""
         for x in range(self.width - 1):
@@ -339,7 +348,3 @@ class Maze:
                 string += ","
             string += "\n"
         return string
-
-myMaze = Maze(18, 18)
-myMaze.setup()
-print(str(myMaze))
