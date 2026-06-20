@@ -1,5 +1,2 @@
-June 7:
-June 8:
-June 9:
-June 10:
-June 11:
+June 7-19: No progress
+June 20: Finished pytest graph completeness tests
