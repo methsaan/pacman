@@ -110,8 +110,12 @@ class MazeNode:
     4 neighbors to be used in the Maze class.
     """
     def __init__(self, vertex):
-        self.square = Square(vertex)
-        self.disjointSet = DisjointSet(vertex)
+        self._square = Square(vertex)
+        self._disjointSet = DisjointSet(vertex)
+    def getSquare(self):
+        return self._square
+    def getDisjointSet(self):
+        return self._disjointSet
 
 class DisjointSetUnion:
     """ === DisjointSetUnion ===
@@ -191,16 +195,24 @@ print(str(dsu))
 
 class Maze:
     def __init__(self, w, h):
-        self.width = w
-        self.height = h
-        self.minCycleSize = 6
+        self._width = w
+        self._height = h
+        self._minCycleSize = 6
 
         # Adjacency list representing adjacent spaces with no wall in between.
         # 0 <= len(graph[(x, y)]) <= 4 for all (x, y).
-        self.graph = {}
+        self._graph = {}
         for x in range(w):
             for y in range(h):
-                self.graph[(x, y)] = MazeNode((x, y))
+                self._graph[(x, y)] = MazeNode((x, y))
+    def getWidth(self):
+        return self._width
+    def getHeight(self):
+        return self._height
+    def getMinCycleSize(self):
+        return self._minCycleSize
+    def getGraph(self, x, y):
+        return self._graph[(x, y)]
     # def _fillGridTemp(self):
     #     for x in range(self.width):
     #         for y in range(self.height):
@@ -215,8 +227,8 @@ class Maze:
     #     print("dist(A, B) < 4", self._lessThanDegree(self.graph[a], self.graph[b], 4))
     #     print("dist(A, B) < 5", self._lessThanDegree(self.graph[a], self.graph[b], 5))
     def _lessThanDegree(self, x, y, degree):
-        # Check if MazeNode <x> is less than <degree> degrees apart from 
-        # Mazenode <y>.
+        # Check if Square <x> is less than <degree> degrees apart from 
+        # Square <y>.
         # Pre-condition: <x> and <y> are nodes on a connected graph.
 
         # Queue of nodes in breadth-first search traversals.
@@ -289,60 +301,60 @@ class Maze:
         # path between <x> and <y> is longer than <degree>.
         return False
     def setup(self, minCycleSize):
-        self.minCycleSize = minCycleSize
-        maxCycles = int((self.width * self.height) // minCycleSize * 0.5)
+        self._minCycleSize = minCycleSize
+        maxCycles = int((self._width * self._height) // minCycleSize * 0.5)
         cycleCnt = 0
         edgesLst = deque([])
         dsu = DisjointSetUnion()
-        for x in range(self.width - 1):
-            for y in range(self.height - 1):
-                edgesLst.append((self.graph[(x, y)], self.graph[(x + 1, y)]))
-                edgesLst.append((self.graph[(x, y)], self.graph[(x, y + 1)]))
-                dsu.makeSet(self.graph[(x, y)].disjointSet)
-        for x in range(self.width - 1):
-            edgesLst.append((self.graph[(x, self.height - 1)], self.graph[(x + 1, self.height - 1)]))
-            dsu.makeSet(self.graph[(x, self.height - 1)].disjointSet)
-        for y in range(self.height - 1):
-            edgesLst.append((self.graph[(self.width - 1, y)], self.graph[(self.width - 1, y + 1)]))
-            dsu.makeSet(self.graph[(self.width - 1, y)].disjointSet)
-        dsu.makeSet(self.graph[(self.width - 1, self.height - 1)].disjointSet)
+        for x in range(self._width - 1):
+            for y in range(self._height - 1):
+                edgesLst.append((self._graph[(x, y)], self._graph[(x + 1, y)]))
+                edgesLst.append((self._graph[(x, y)], self._graph[(x, y + 1)]))
+                dsu.makeSet(self._graph[(x, y)].getDisjointSet())
+        for x in range(self._width - 1):
+            edgesLst.append((self._graph[(x, self._height - 1)], self._graph[(x + 1, self._height - 1)]))
+            dsu.makeSet(self._graph[(x, self._height - 1)].getDisjointSet())
+        for y in range(self._height - 1):
+            edgesLst.append((self._graph[(self._width - 1, y)], self._graph[(self._width - 1, y + 1)]))
+            dsu.makeSet(self._graph[(self._width - 1, y)].getDisjointSet())
+        dsu.makeSet(self._graph[(self._width - 1, self._height - 1)].getDisjointSet())
         random.shuffle(edgesLst)
         edges = deque(edgesLst)
         while len(edges) > 0:
             edge = edges.popleft()
             vertex1 = edge[0]
             vertex2 = edge[1]
-            isDisjoint = dsu.union(vertex1.disjointSet, vertex2.disjointSet)
+            isDisjoint = dsu.union(vertex1.getDisjointSet(), vertex2.getDisjointSet())
             if isDisjoint:
                 # Add the edge if there is no cycle
-                vertex1.square.addNeighbor(vertex2.square)
+                vertex1.getSquare().addNeighbor(vertex2.getSquare())
             else:
                 # Add the edge if cycle is larger than the minimum cycle size and
                 # maximum number of cycles is not reached
                 if cycleCnt < maxCycles:
-                    isSmallCycle = self._lessThanDegree(vertex1.square, vertex2.square, minCycleSize - 1)
+                    isSmallCycle = self._lessThanDegree(vertex1.getSquare(), vertex2.getSquare(), minCycleSize - 1)
                     if not isSmallCycle:
-                        vertex1.square.addNeighbor(vertex2.square)
+                        vertex1.getSquare().addNeighbor(vertex2.getSquare())
                         cycleCnt += 1
     def __str__(self):
         string = ""
-        for x in range(self.width - 1):
-            if self.graph[(x, 0)].square.isNeighbor((x + 1, 0)):
+        for x in range(self._width - 1):
+            if self._graph[(x, 0)].getSquare().isNeighbor((x + 1, 0)):
                 string += "__"
             else:
                 string += "  "
         string += "\n"
-        for y in range(1, self.height):
-            for x in range(self.width - 1):
-                if self.graph[(x, y)].square.isNeighbor(((x, y - 1))):
+        for y in range(1, self._height):
+            for x in range(self._width - 1):
+                if self._graph[(x, y)].getSquare().isNeighbor(((x, y - 1))):
                     string += "|"
                 else:
                     string += ","
-                if self.graph[(x, y)].square.isNeighbor(((x + 1, y))):
+                if self._graph[(x, y)].getSquare().isNeighbor(((x + 1, y))):
                     string += "_"
                 else:
                     string += " "
-            if self.graph[(self.width - 1, y)].square.isNeighbor(((self.width - 1, y - 1))):
+            if self._graph[(self._width - 1, y)].getSquare().isNeighbor(((self._width - 1, y - 1))):
                 string += "|"
             else:
                 string += ","
