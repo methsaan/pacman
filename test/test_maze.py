@@ -27,18 +27,13 @@ class Test_Maze:
             curr = stack.pop()
         return len(unvisited) == 0
     def test_setup(self):
-        # Check if graph is connected:
-        # Check if min cycle size:
-        # - Run DFS on graph starting on each node, add nodes to set,
-        # check if size of set is equal to w*h, append cnt if hits a cycle
-        # - Repeat for w=2, 7, 12, height=2, 7, 12, min cycle=4,8,12
-        # - check if no cnt in list exceeds min cycle
+        # Check if graph is connected, check if min cycle size
         for w in [2, 7, 12]:
             for h in [2, 7, 12]:
                 for minCycle in [4, 8, 12]:
                     testMaze = Maze(w, h)
                     testMaze.setup(minCycle)
-                    assert self._check_connected(testMaze)
+                    assert self._check_connected(testMaze), f"Graph not connected after setup: width={w}, height={h}, minCycle={minCycle}"
 
 class Test_DisjointSetUnion:
     def test_union(self):
