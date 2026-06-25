@@ -1,2 +1,4 @@
 June 7-19: No progress
 June 20: Finished pytest graph completeness tests
+June 21-23: No progress
+June 24: Finished pytest minimum cycle restriction method attempt, test failed
